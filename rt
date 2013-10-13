@@ -35,6 +35,9 @@ addr = `{
 start = `{echo $addr | awk '{print $1}'}
 end = `{echo $addr | awk '{print $2}'}
 
+# We calculate the line number by reading the entire 0,$start blob into memory,
+# and run `{wc -l}.
+# Not sure if there's a smarter way of doing this?
 echo -n '0,#'$start | 9p write acme/$winid/addr
 line = `{cat /mnt/acme/$winid/xdata | wc -l}
 line = `{echo $line'+1' | bc}
