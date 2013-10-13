@@ -1,0 +1,13 @@
+rake test >[2=1] | awk '/, elapsed/ {printf "."; fflush()}; ! /, elapsed/ {gsub(/\x1B\[[0-9]*m/, ""); print}'
+
+--- General commands ---
+findcode # search for files recursively in `{pwd}
+rg # search for files that contain the 1st arg
+
+--- acme commands --
+a+ # indent tab
+a- # unindent tab
+
+--- Rails commands ---
+rtest # run the Rails test file in the 1st arg
+rt # run the Rails test case on the cursor

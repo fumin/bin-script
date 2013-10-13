@@ -1,0 +1,49 @@
+#!/usr/local/plan9/bin/rc
+
+# Find "Rails.root" by recursively looping through
+# parent folders that contain the files "Gemfile" etc.
+fn railsroot {
+	f = `{9 basename -d $%}
+	bk=''
+	while (~ $bk '') {
+		if(test -f $f/Gemfile -a -d $f/app -a -f $f/config.ru -a -d $f/config -a -d $f/db -a -d $f/test) bk=1
+		
+		if(test ! -d $f) bk=1
+		
+		if(! ~ $bk 1) f=`{9 basename -d $f}
+	}
+	echo $f
+}
+
+if (! ~ $% *_test.rb) {
+	echo 'not a ruby test file'
+	exit not_ruby_test
+}
+
+# We need to read from "addr" and write to "ctl"
+# within one command, since "addr" resets to (0, 0)
+# once it is opened.
+# For example, this does not work:
+#   echo 'addr=dot' >>/mnt/acme/$winid/ctl;
+#   cat mnt/acme/$winid/addr
+#
+addr = `{
+	</mnt/acme/$winid/addr{
+		echo 'addr=dot' >>/mnt/acme/$winid/ctl;
+		cat;
+	}}
+start = `{echo $addr | awk '{print $1}'}
+end = `{echo $addr | awk '{print $2}'}
+
+echo -n '0,#'$start | 9p write acme/$winid/addr
+line = `{cat /mnt/acme/$winid/xdata | wc -l}
+line = `{echo $line'+1' | bc}
+
+testcase = `{rtparse.rb $% | awk -v 'line='$line '$1 <= line && $2 >= line {print $3}'}
+
+cd `{railsroot}
+rtest $% $testcase >[2=1] | awk '/, elapsed/ {printf "."; fflush()}; ! /, elapsed/ {gsub(/\x1B\[[0-9]*m/, ""); print}'
+
+
+		
+

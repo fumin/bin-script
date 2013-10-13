@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd `pwd`
+
+if [ $# -eq 1 ]
+then
+  ruby -I'lib:test' $1
+else
+  ruby -I'lib:test' $1 -n $2
+fi
